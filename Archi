@@ -1,0 +1,178 @@
+02_ARCHI — FORMULARIO ESAME TECNICHE DI PROGRAMMAZIONE
+====================================================
+
+0) DOMANDE DA FARSI LEGGENDO LA CONSEGNA
+- Grafo orientato o non orientato? nx.DiGraph() / nx.Graph().
+- Quando esiste un arco? (relazione, elementi condivisi, soglia, intervallo temporale...)
+- Il peso che cosa rappresenta? (conteggio, somma, differenza, distanza...)
+- Le coppie sono ordinate? In un grafo non orientato evitare doppioni.
+- Tutti i nodi vanno inseriti anche se isolati? Se sì, add_nodes_from prima degli archi.
+- Sono ammessi archi di peso zero? La consegna può richiedere di ometterli.
+
+1) STRUTTURA BASE DEL MODEL
+import networkx as nx
+from database.DAO import DAO
+
+class Model:
+    def __init__(self):
+        self._graph = nx.Graph()  # oppure nx.DiGraph()
+        self._nodes = []
+        self._idMap = {}
+
+    def buildGraph(self):
+        self._graph.clear()
+        self._nodes = DAO.getAllNodes()  # ADATTARE il nome
+        self._graph.add_nodes_from(self._nodes)
+        self._idMap = {n.Id: n for n in self._nodes}  # ADATTARE Id
+        # aggiungere qui la costruzione degli archi
+
+2) METODO A — IL DAO RESTITUISCE DIRETTAMENTE LE COPPIE E IL PESO
+# SQL di esempio: la query DEVE restituire id1, id2, peso.
+# In un grafo non orientato, usare id1 < id2 per evitare coppie speculari.
+# Esempio generico (adattare tabelle e criterio alla consegna):
+# SELECT a.id AS id1, b.id AS id2, COUNT(*) AS peso
+# FROM ...
+# WHERE a.id < b.id
+# GROUP BY a.id, b.id
+
+# MODEL, dentro buildGraph():
+for row in DAO.getAllEdges():
+    u = self._idMap[row['id1']]
+    v = self._idMap[row['id2']]
+    self._graph.add_edge(u, v, weight=row['peso'])
+
+# NOTA: se DAO restituisce dict da cursor(dictionary=True), usare row['campo'].
+# I nomi delle chiavi devono coincidere esattamente con gli alias SQL.
+
+3) ESEMPIO REALE — GIUGNO 2026 C, ARTISTI / PLAYLIST (TUO METODO SQL)
+# DAO.getAllEdges() restituisce Artist1, Artist2, peso
+# peso = numero di playlist condivise da due artisti distinti
+for edge in DAO.getAllEdges():
+    a1 = self._idMapAO[edge['Artist1']]
+    a2 = self._idMapAO[edge['Artist2']]
+    self._graph.add_edge(a1, a2, weight=edge['peso'])
+
+# SQL della traccia: due sottoquery DISTINCT artista-playlist, join per PlaylistId,
+# WHERE ap1.ArtistId < ap2.ArtistId, GROUP BY artisti, COUNT(*) AS peso.
+# DISTINCT è importante: più brani dello stesso artista nella stessa playlist
+# NON devono far contare più volte quella playlist.
+
+4) METODO B — CONFRONTO DI TUTTE LE COPPIE IN PYTHON
+from itertools import combinations
+
+for u, v in combinations(self._nodes, 2):
+    # ESEMPIO: due nodi condividono elementi in due set
+    common = u.Elementi & v.Elementi  # ADATTARE attributi
+    if common:
+        self._graph.add_edge(u, v, weight=len(common))
+
+# Forma equivalente senza itertools:
+for i in range(len(self._nodes)):
+    for j in range(i + 1, len(self._nodes)):
+        u = self._nodes[i]
+        v = self._nodes[j]
+        # verificare condizione e aggiungere arco
+
+5) ESEMPIO REALE — GIUGNO 2026 C, METODO DEL PROFESSORE
+# PRIMA, per ogni artista, popolare Playlists con gli ID delle playlist:
+artistPlaylists = DAO.getArtistPlaylistPairs()
+for artist in self._artists:
+    artist.Playlists = set(artistPlaylists.get(artist.ArtistId, set()))
+
+# POI confrontare coppie:
+for i in range(len(self._artists)):
+    for j in range(i + 1, len(self._artists)):
+        a1, a2 = self._artists[i], self._artists[j]
+        common = a1.Playlists & a2.Playlists
+        if common:
+            self._graph.add_edge(a1, a2, weight=len(common))
+
+# Il metodo SQL e quello Python sono alternativi; non applicarli entrambi.
+
+6) METODO C — COSTRUIRE I PESI A PARTIRE DA GRUPPI CONDIVISI
+from collections import defaultdict
+from itertools import combinations
+
+# Esempio GENERICO: DAO.getMemberships() -> coppie (group_id, node_id)
+gruppi = defaultdict(set)
+for group_id, node_id in DAO.getMemberships():
+    gruppi[group_id].add(node_id)
+
+pesi = defaultdict(int)
+for membri in gruppi.values():
+    for id1, id2 in combinations(sorted(membri), 2):
+        pesi[(id1, id2)] += 1
+
+for (id1, id2), peso in pesi.items():
+    self._graph.add_edge(self._idMap[id1], self._idMap[id2], weight=peso)
+
+# Utile quando il peso = numero di gruppi condivisi.
+# Gli ID devono essere ordinabili per usare sorted(); altrimenti normalizzare le coppie.
+
+7) ARCHI ORIENTATI — DIREZIONE DETERMINATA DA UNA REGOLA
+# Usare nx.DiGraph() nel costruttore.
+for u, v in combinations(self._nodes, 2):
+    if u.Valore < v.Valore:
+        self._graph.add_edge(u, v)
+    elif v.Valore < u.Valore:
+        self._graph.add_edge(v, u)
+    else:
+        # SOLO SE la consegna prevede entrambi i versi in caso di parità
+        self._graph.add_edge(u, v)
+        self._graph.add_edge(v, u)
+
+# Se la direzione è già nella query, NON invertire arbitrariamente u e v.
+
+8) ARCHI PESATI — FORMULE COMUNI
+self._graph.add_edge(u, v, weight=peso)
+# peso = len(u.Insieme & v.Insieme)     # elementi condivisi
+# peso = abs(u.Valore - v.Valore)      # differenza assoluta
+# peso = u.Valore + v.Valore           # somma attributi
+# peso = conteggio SQL                # COUNT(*) o COUNT(DISTINCT ...)
+
+# Se la consegna chiede solo archi che soddisfano una condizione:
+if condizione:
+    self._graph.add_edge(u, v, weight=peso)
+
+9) LEGGERE GLI ARCHI / STATISTICHE
+self._graph.number_of_edges()               # numero archi
+self._graph.has_edge(u, v)                   # esistenza arco
+self._graph[u][v]['weight']                  # peso (solo se arco esistente)
+self._graph.edges(data=True)                 # (u, v, {'weight': ...})
+self._graph.neighbors(u)                     # vicini (Graph e DiGraph: successori)
+self._graph.degree(u)                        # grado
+self._graph.degree(u, weight='weight')       # somma pesi incidenti
+
+# DiGraph: distinguere entranti / uscenti
+self._graph.successors(u)
+self._graph.predecessors(u)
+self._graph.in_degree(u)
+self._graph.out_degree(u)
+self._graph.in_degree(u, weight='weight')
+self._graph.out_degree(u, weight='weight')
+
+10) TOP-N ARCHI CON PESI
+# Ordine decrescente per peso:
+top10 = sorted(
+    self._graph.edges(data=True),
+    key=lambda e: e[2]['weight'],
+    reverse=True
+)[:10]
+
+# Parità: peso decrescente, nomi alfabetici, indipendenti dall'ordine degli estremi
+# (utile per Graph non orientato):
+top10 = sorted(
+    self._graph.edges(data=True),
+    key=lambda e: (
+        -e[2]['weight'],
+        min(e[0].Name, e[1].Name),
+        max(e[0].Name, e[1].Name)
+    )
+)[:10]
+
+# ATTENZIONE: edges(data=True) -> terzo elemento = dizionario.
+# edges(data='weight') -> terzo elemento = valore numerico del peso.
+
+
+
+
