@@ -1,4 +1,5 @@
 --SQL PER NODI FATTI PER DATABSE CHINOOK
+La cosa fondamentale: DISTINCT evita i duplicati, mentre WHERE applica il filtro richiesto.
 --Traccia 29 giugno 2026 – B:
 --I vertici sono gli album che contengono almeno un brano presente nella tabella Track.
 DISTINCT --> Un album può contenere più brani.
@@ -23,6 +24,7 @@ FROM Customer c
 JOIN Invoice i ON i.CustomerId = c.CustomerId
 #selezionato da utente
 WHERE c.Country =%s
+GROUP BY c.CustomerId;
 
 --Simulazione 11
 --I vertici del grafo sono tutti gli artisti (Artist) che possiedono
@@ -31,6 +33,21 @@ SELECT DISTINCT a.ArtistId, a.Name
 FROM Artist a
 JOIN Album a2 ON a2.ArtistId = a.ArtistId
 JOIN Track t ON t.AlbumId = a2.AlbumId
+JOIN Genre g ON g.GenreId = t.GenreId
+WHERE g.Name = %s;
+
+-- ATTENZIONE AL FILTRO:
+-- Se la tendina restituisce il NOME (es. "Rock"):
+--     WHERE g.Name = %s
+--
+-- Se la tendina restituisce l'ID (es. 1):
+--     WHERE t.GenreId = %s
+-- Non serve JOIN Genre se filtri direttamente per t.GenreId.
+
+SELECT DISTINCT a.ArtistId, a.Name
+FROM Artist a
+JOIN Album al ON al.ArtistId = a.ArtistId
+JOIN Track t ON t.AlbumId = al.AlbumId
 JOIN Genre g ON g.GenreId = t.GenreId
 WHERE g.Name = %s;
 
@@ -74,3 +91,14 @@ JOIN InvoiceLine il On il.InvoiceId =i.InvoiceId
 JOIN Track t ON t.TrackId =il.TrackId
 JOIN Genre g ON g.GenreId =t.GenreId
 WHERE g.GenreId =%s
+
+--I vertici rappresentano tutti gli album (Album) che contengono almeno un brano (Track)
+--acquistato da un cliente (Customer) residente in un Paese selezionato dall’utente.
+SELECT DISTINCT a.AlbumId, a.Title, a.ArtistId
+FROM Album a
+JOIN Track t ON a.AlbumId = t.AlbumId
+JOIN InvoiceLine il ON il.TrackId =t.TrackId
+JOIN Invoice i ON i.InvoiceId =il.InvoiceId
+JOIN Customer c ON c.CustomerId = i.CustomerId
+WHERE c.Country =%s
+GROUP BY a.AlbumId, a.Title, a.ArtistId
