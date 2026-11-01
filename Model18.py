@@ -42,7 +42,6 @@ self._graph.add_edge(u, v)
 # nx.Graph() non crea archi multipli, ma gli autoarchi
 # devono essere evitati esplicitamente nel codice.
 
-
 #Grafo NON orientato (nx.Graph()) → eviti le coppie duplicate e gli autoarchi.
 #Grafo orientato (nx.DiGraph()) → eviti gli autoarchi,
 # ma non necessariamente le coppie inverse, perché A → B e B → A sono due archi diversi.
@@ -62,3 +61,6 @@ model.buildGraph()
 
 print("Numero nodi:", model.getNumNodes())
 print("Numero archi:", model.getNumEdges())
+
+
+

@@ -55,7 +55,7 @@ for u, v in itertools.combinations(self._nodes, 2):
     if peso > 0:
         self._graph.add_edge(u, v)
 
-METODO C — CONFRONTO DI INSIEMI IN PYTHON
+METODO C — CONFRONTO DI INSIEMI IN PYTHON (esempio:luglio2024)
 Quando utilizzarlo?
 Quando ogni nodo possiede già un insieme di elementi associati
 Esempio: ogni artista possiede un insieme di playlist.
@@ -71,6 +71,7 @@ for artist in self._nodes:
     )
 
 2) MODEL — Costruzione archi
+lo scrivi appena dopo: self._idMapAO = {a.id: a for a in self._nodes}
 import itertools
 for u, v in itertools.combinations(self._nodes, 2):
 
@@ -106,7 +107,6 @@ gruppi = defaultdict(set)
 # MODIFICARE: metodo DAO
 for group_id, node_id in DAO.getMemberships():
     gruppi[group_id].add(node_id)
-
 
 # Conteggio gruppi condivisi
 pesi = defaultdict(int)

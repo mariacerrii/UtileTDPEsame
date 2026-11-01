@@ -1,3 +1,10 @@
+ATTENTA (LUGLIO24A O B):
+Quando la traccia richiede di creare archi confrontando
+attributi già presenti negli oggetti dei nodi, senza dover interrogare nuovamente il database.
+* Luglio A: stesso Stato + ordine temporale.
+* Luglio B: stessa forma + distanza inferiore a 100 km.
+--> usa METODO C — CONFRONTO DI INSIEMI IN PYTHON (PARTICOLARE)
+
 METODO A — getAllEdges()
 METODO PRINCIPALE: PROVALO PER PRIMO.
 
