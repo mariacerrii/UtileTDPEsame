@@ -1,12 +1,19 @@
-ATTENTA (LUGLIO24A O B):
-Quando la traccia richiede di creare archi confrontando
-attributi già presenti negli oggetti dei nodi, senza dover interrogare nuovamente il database.
-* Luglio A: stesso Stato + ordine temporale.
-* Luglio B: stessa forma + distanza inferiore a 100 km.
---> usa METODO C — CONFRONTO DI INSIEMI IN PYTHON (PARTICOLARE)
+=====================================================
+ATTENZIONE — LUGLIO 2024 A e B
+=====================================================
+Quando la traccia richiede di confrontare attributi già presenti negli oggetti dei nodi, NON serve
+necessariamente una query SQL per gli archi.
+# Si può utilizzare:
+ARCHI PARTICOLARI — CONFRONTO DIRETTO ATTRIBUTI (altro file, METODO E)
+
+ESEMPI:
+# Luglio A: stesso Stato + ordine temporale.
+# Luglio B: stessa forma + distanza inferiore a 100 km.
 
 METODO A — getAllEdges()
-METODO PRINCIPALE: PROVALO PER PRIMO.
+METODO PRINCIPALE: PROVALO PER PRIMO
+Da utilizzare quando le coppie di nodi devono essere individuate attraverso JOIN
+o condizioni SQL, soprattutto se servono informazioni non già presenti nei nodi
 
 1) DAO.py — Struttura generale
 
@@ -73,6 +80,14 @@ self._graph.add_edge(u, v)
 # MODIFICARE: IL PESO DIPENDE DALLA TRACCIA
 3 METODI PER CALCOLARE PESO:
 1) DIPENDE DAL DAO: peso = edge["peso"]
+!!I n questo caso, la query SQL deve restituire una colonna chiamata peso:
+--> SELECT
+    n1.Id AS v1,
+    n2.Id AS v2,
+    COUNT(*) AS peso
+FROM ...
+GROUP BY n1.Id, n2.Id
+
 2)attributi e operazione: peso = u.Fatturato + v.Fatturato
 3)Differenza tra valori:  peso = abs(u.Valore - v.Valore)
 # NON MODIFICARE
