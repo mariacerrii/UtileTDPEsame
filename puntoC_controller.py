@@ -349,6 +349,34 @@ for nodo, grado in risultati:
 
 self._view.update_page()
 
+# ============================================================
+#  variabile di quello sopra in ORDINE ALFABETICO + NUMERO BRANI (GIUGNO B)
+# ============================================================
+def handleStampaInfo(self, e):
+    numero, album = self._model.getInfoComponenti()
+
+    self._view._txt_result.controls.clear()
+
+    # Numero totale componenti
+    self._view._txt_result.controls.append(
+        ft.Text(f"Numero componenti connesse: {numero}")
+    )
+
+    # Dimensione componente maggiore
+    self._view._txt_result.controls.append(
+        ft.Text(f"Componente maggiore: {len(album)} album")
+    )
+
+    # Dettagli degli album in ordine alfabetico
+    for a in album:
+        self._view._txt_result.controls.append(
+            ft.Text(
+                f"Album: {a.Title} | "
+                f"Numero brani: {len(a.tracks)}"
+            )
+        )
+    self._view.update_page()
+
 
 # ============================================================
 # 10. COMPONENTE MAGGIORE ORDINATA PER PESO MASSIMO INCIDENTE

@@ -1,5 +1,6 @@
 import networkx as nx
 
+
 # ============================================================
 # 1. TOP 5 NODI CON PIÙ ARCHI USCENTI + SOMMA PESI USCENTI
 # GRAFO ORIENTATO E PESATO
@@ -27,6 +28,7 @@ def getTop5Nodi(self):
     )[:5]
 
     return [(nodo, self._grafo.degree(nodo)) for nodo in nodi]
+
 
 
 # ============================================================
@@ -206,6 +208,28 @@ def getComponenteMaxPerGrado(self):
     )
 
     return len(componenti), risultati
+
+# ============================================================
+#  variabile di quello sopra in ORDINE ALFABETICO + NUMERO BRANI (GIUGNO B)
+# ============================================================
+
+def getInfoComponenti(self):
+    # Trovo tutte le componenti connesse
+    componenti = list(nx.connected_components(self._grafo))
+
+    if len(componenti) == 0:
+        return 0, []
+
+    # Trovo la componente più grande
+    maggiore = max(componenti, key=len)
+
+    # Ordino gli album alfabeticamente per titolo
+    album_ordinati = sorted(
+        maggiore,
+        key=lambda a: a.Title
+    )
+
+    return len(componenti), album_ordinati
 
 
 # ============================================================

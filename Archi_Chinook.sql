@@ -4,7 +4,10 @@ WHERE t1.ID < t2.ID
 
 -- ARCHI ORIENTATI
 -- Evitare soltanto autoarchi
+--ENTRAMBI I VERSI
 WHERE t1.ID != t2.ID
+-- DAL PIù VECCHIO AL PIù RECENTE
+WHERE t1.Data < t2.Data
 
 --29 giugno 2026, tipologia B
 --Il grafo non orientato e non pesato.
@@ -133,7 +136,6 @@ JOIN Invoice i2
     ON i1.CustomerId = i2.CustomerId
 --> QUI DEFINISCE SIA CHE SONO DIVERSE SIA ORDINE ARCO
 WHERE i1.InvoiceDate < i2.InvoiceDate;
-WHERE i1.InvoiceId != i2.InvoiceId
 
 
 -- grafo non orientato e non pesato
@@ -168,3 +170,51 @@ JOIN Invoice i2 ON i2.InvoiceId = il2.InvoiceId
 JOIN Customer c2 ON c2.CustomerId = i2.CustomerId
 WHERE c1.CustomerId < c2.CustomerId
 GROUP BY c1.CustomerId, c2.CustomerId;
+
+
+--ARCHI: esiste un arco orientato dal dipendente al suo responsabile diretto
+SELECT
+    e.EmployeeId AS v1,
+    e.ReportsTo AS v2
+FROM Employee e
+WHERE e.ReportsTo IS NOT NULL;
+
+--PLAYLIST CON BRANI IN COMUNE
+--ARCHI: due playlist distinte sono collegate se condividono almeno un brano (Track).
+--PESO: il numero di brani distinti condivisi dalle due playlist.
+SELECT
+    pt1.PlaylistId AS v1,
+    pt2.PlaylistId AS v2,
+    COUNT(DISTINCT pt1.TrackId) AS peso
+
+FROM PlaylistTrack pt1
+JOIN PlaylistTrack pt2
+    ON pt1.TrackId = pt2.TrackId
+WHERE pt1.PlaylistId < pt2.PlaylistId
+GROUP BY pt1.PlaylistId, pt2.PlaylistId;
+
+--BRANI STESSO ALBUM
+--ARCHI: due brani distinti sono collegati se appartengono allo stesso album
+SELECT
+    t1.TrackId AS v1,
+    t2.TrackId AS v2
+FROM Track t1
+JOIN Track t2 ON t1.AlbumId = t2.AlbumId
+WHERE t1.TrackId < t2.TrackId;
+
+-- GRUPO BY + HAVING (ALMENO 10 BRAVI)
+--I vertici del grafo rappresentano tutti gli artisti che hanno pubblicato almeno 10 brani musicali.
+SELECT a.ArtistId, a.Name,
+    COUNT(t.TrackId) AS NumeroBrani
+FROM Artist a
+JOIN Album al ON al.ArtistId = a.ArtistId
+JOIN Track t ON t.AlbumId = al.AlbumId
+GROUP BY a.ArtistId, a.Name
+HAVING COUNT(t.TrackId) >= 10;
+
+--NOTA
+-- WHERE: filtra le righe
+WHERE t.GenreId = %s
+
+-- HAVING: filtra i gruppi
+HAVING COUNT(t.TrackId) >= 10

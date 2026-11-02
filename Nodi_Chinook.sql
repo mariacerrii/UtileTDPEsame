@@ -102,3 +102,11 @@ JOIN Invoice i ON i.InvoiceId =il.InvoiceId
 JOIN Customer c ON c.CustomerId = i.CustomerId
 WHERE c.Country =%s
 GROUP BY a.AlbumId, a.Title, a.ArtistId
+
+---DIPENDENTI E RESPONSABILI
+--NODI: tutti i dipendenti presenti nella tabella Employee.
+SELECT e.EmployeeId, e.FirstName, e.LastName
+FROM Employee e
+
+
+
